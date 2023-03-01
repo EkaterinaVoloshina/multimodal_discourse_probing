@@ -39,7 +39,7 @@ class DatasetLoader(Dataset):
         else:
             annotations, images = self.open_file(filename)
             self.image_tensor, self.labels = self.load_dataset(
-                images=images,
+                images=images[:1000],
                 annotations=annotations,
                 download=download)
             
@@ -115,9 +115,9 @@ class DatasetLoader(Dataset):
 
 
 class EncoderModel(torch.nn.Module):
-    def __init__(self, img_size):
+    def __init__(self, img_size, 
+                pretrained_model=resnet50(pretrained=True)):
         super(EncoderModel, self).__init__()
-        pretrained_model = resnet50(pretrained=True)
         self.model = torch.nn.Sequential(*list(pretrained_model.children())[:-1])
         self.adaptive_pool = torch.nn.AdaptiveAvgPool2d((img_size, img_size))
     
@@ -143,9 +143,9 @@ def get_vectors(data, model, device="cpu"):
     return images, ids, annotations, albums
 
 
-def confuse_captions(images, annotations, ids, album):
+def confuse_captions(images, annotations, ids, album, img2txt=True):
 
-    new_annotations = {}
+    new_values = {}
 
     cos_sim = cosine_similarity(images[0].detach().cpu().numpy())
 
@@ -164,6 +164,10 @@ def confuse_captions(images, annotations, ids, album):
             closest_value_idx -= 1
             closest_value = closest[closest_value_idx]
         
-        new_annotations[ids[0][i]] = (annotations[0][i], annotations[0][closest_value])
+        if img2txt:
+            new_values[ids[0][i]] = (annotations[0][i], annotations[0][closest_value])
+        else: 
+            new_values[annotations[0][i]] = (ids[0][i], ids[0][closest_value])
+            
     
-    return new_annotations
+    return new_values
