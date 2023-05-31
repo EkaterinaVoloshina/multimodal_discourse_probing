@@ -1,4 +1,3 @@
-# Multilingual discourse probing
+# Are Language-and-Vision Transformers Sensitive to Discourse? Case Study of ViLBERT
 
-## Tasks:
-TBA
+This is the code for Master's thesis, University of Gothenburg, 2023
