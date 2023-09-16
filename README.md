@@ -1,5 +1,4 @@
-# Are Language-and-Vision Transformers Sensitive to
-Discourse? The case study of ViLBERT
+# Are Language-and-Vision Transformers Sensitive to Discourse? The case study of ViLBERT
 
 This is a repository with the code for Master’s thesis [“Are Language-and-Vision Transformers Sensitive to Discourse? The case study of ViLBERT”](https://github.com/EkaterinaVoloshina/multimodal_discourse_probing/blob/main/thesis_text.pdf)
 
