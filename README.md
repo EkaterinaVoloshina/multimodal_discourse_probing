@@ -27,20 +27,22 @@ sh data/download_vist.sh
 To generate datasets for experiments, run the following commands:
 
 ```bash
+cd preprocessing
 echo "Calculating image similarity"
-python preprocessing/calculate_image_similarity.py
+python calculate_image_similarity.py
 
 echo "Calculating text similarity"
-python preprocessing/calculate_text_similarity.py --input_file ../data/preprocessed_sis/caption_test.json --device cuda --split test_sis
+python calculate_text_similarity.py --input_file ../data/preprocessed_sis/caption_test.json --device cuda --split test_sis
 
 echo "Generating datasets"
-sh preprocessing/generate_h5_files.sh
-sh preprocessing/generate_files.sh
+sh generate_h5_files.sh
+sh generate_files.sh
 ```
 
 To run the probing experiments, use the following commands (note that the code for encoders in VOLTA was modified):
 
 ```bash
-sh probing/run_probing.sh
-sh probing/run_sis_probing.sh
+cd probing
+sh run_probing.sh
+sh run_sis_probing.sh
 ```
