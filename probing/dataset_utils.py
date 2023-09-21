@@ -1,11 +1,12 @@
-import os
 import json
+import os
 import random
-import tensorpack.dataflow as td
-import numpy as np
-import torch
 
+import numpy as np
+import tensorpack.dataflow as td
+import torch
 from transformers import AutoTokenizer
+
 
 def iou(anchors, gt_boxes):
     """
@@ -17,27 +18,27 @@ def iou(anchors, gt_boxes):
     K = gt_boxes.shape[0]
 
     gt_boxes_area = (
-            (gt_boxes[:, 2] - gt_boxes[:, 0] + 1) * (gt_boxes[:, 3] - gt_boxes[:, 1] + 1)
+        (gt_boxes[:, 2] - gt_boxes[:, 0] + 1) * (gt_boxes[:, 3] - gt_boxes[:, 1] + 1)
     ).reshape(1, K)
 
     anchors_area = (
-            (anchors[:, 2] - anchors[:, 0] + 1) * (anchors[:, 3] - anchors[:, 1] + 1)
+        (anchors[:, 2] - anchors[:, 0] + 1) * (anchors[:, 3] - anchors[:, 1] + 1)
     ).reshape(N, 1)
 
     boxes = np.repeat(anchors.reshape(N, 1, 4), K, axis=1)
     query_boxes = np.repeat(gt_boxes.reshape(1, K, 4), N, axis=0)
 
     iw = (
-            np.minimum(boxes[:, :, 2], query_boxes[:, :, 2])
-            - np.maximum(boxes[:, :, 0], query_boxes[:, :, 0])
-            + 1
+        np.minimum(boxes[:, :, 2], query_boxes[:, :, 2])
+        - np.maximum(boxes[:, :, 0], query_boxes[:, :, 0])
+        + 1
     )
     iw[iw < 0] = 0
 
     ih = (
-            np.minimum(boxes[:, :, 3], query_boxes[:, :, 3])
-            - np.maximum(boxes[:, :, 1], query_boxes[:, :, 1])
-            + 1
+        np.minimum(boxes[:, :, 3], query_boxes[:, :, 3])
+        - np.maximum(boxes[:, :, 1], query_boxes[:, :, 1])
+        + 1
     )
     ih[ih < 0] = 0
 
@@ -82,7 +83,7 @@ class InputExample(object):
         self.lm_labels = lm_labels  # masked words for language model
         self.image_loc = image_loc
         self.image_cls = image_cls
-        self.obj_labels = obj_labels    # (label, conf)
+        self.obj_labels = obj_labels  # (label, conf)
         self.obj_confs = obj_confs
         self.attr_labels = attr_labels  # (label, conf)
         self.attr_confs = attr_confs
@@ -111,7 +112,7 @@ class InputFeatures(object):
         image_loc=None,
         image_label=None,
         image_mask=None,
-        masked_label=None
+        masked_label=None,
     ):
         self.input_ids = input_ids
         self.input_mask = input_mask
@@ -129,7 +130,6 @@ class InputFeatures(object):
         self.image_attrs = image_attrs
         self.image_mask = image_mask
         self.masked_label = masked_label
-
 
 
 class ConceptCapLoaderVal(object):
@@ -151,29 +151,29 @@ class ConceptCapLoaderVal(object):
             the size of dataset is not divisible by the batch size, then the last batch
             will be smaller. (default: False)
         cuda (bool, optional): set to ``True`` and the PyTorch tensors will get preloaded
-            to the GPU for you (necessary because this lets us to uint8 conversion on the 
+            to the GPU for you (necessary because this lets us to uint8 conversion on the
             GPU, which is faster).
     """
 
     def __init__(
-            self,
-            true_captions,
-            shuffled_captions,
-            tokenizer,
-            seq_len,
-            batch_size=4,
-            num_workers=25,
-            cache=5000,
-            objective=0,
-            num_locs=5,
-            add_global_imgfeat=True,
-            visualization=False,
+        self,
+        true_captions,
+        shuffled_captions,
+        tokenizer,
+        seq_len,
+        batch_size=4,
+        num_workers=25,
+        cache=5000,
+        objective=0,
+        num_locs=5,
+        add_global_imgfeat=True,
+        visualization=False,
     ):
         lmdb_file = os.path.join("validation_feat_all.lmdb")
-        
+
         print("Loading from %s" % lmdb_file)
 
-        ds_true  = td.LMDBSerializer.load(lmdb_file, shuffle=False)
+        ds_true = td.LMDBSerializer.load(lmdb_file, shuffle=False)
         ds_shuffled = td.LMDBSerializer.load(lmdb_file, shuffle=False)
         num_dataset = len(ds_true)
         preprocess_function = BertPreprocessBatch(
@@ -185,9 +185,9 @@ class ConceptCapLoaderVal(object):
             visualization=visualization,
             objective=objective,
             num_locs=num_locs,
-            shuffled=False
+            shuffled=False,
         )
-        
+
         shuffled_function = BertPreprocessBatch(
             shuffled_captions,
             tokenizer,
@@ -197,7 +197,7 @@ class ConceptCapLoaderVal(object):
             visualization=visualization,
             objective=objective,
             num_locs=num_locs,
-            shuffled=True
+            shuffled=True,
         )
 
         ds_true = td.MapData(ds_true, preprocess_function)
@@ -214,8 +214,25 @@ class ConceptCapLoaderVal(object):
 
     def __iter__(self):
         for batch in self.ds.get_data():
-            input_ids, input_mask, segment_ids, lm_label_ids, is_next, image_feat, image_loc, \
-                image_cls, obj_labels, obj_confs, attr_labels, attr_confs, image_attrs, image_label, image_mask, masked_label, image_id = batch
+            (
+                input_ids,
+                input_mask,
+                segment_ids,
+                lm_label_ids,
+                is_next,
+                image_feat,
+                image_loc,
+                image_cls,
+                obj_labels,
+                obj_confs,
+                attr_labels,
+                attr_confs,
+                image_attrs,
+                image_label,
+                image_mask,
+                masked_label,
+                image_id,
+            ) = batch
 
             batch_size = input_ids.shape[0]
 
@@ -223,12 +240,18 @@ class ConceptCapLoaderVal(object):
                 sum_count = np.sum(masked_label == 0, axis=1, keepdims=True)
                 sum_count[sum_count == 0] = 1
                 g_image_feat = np.sum(image_feat, axis=1) / sum_count
-                image_feat = np.concatenate([np.expand_dims(g_image_feat, axis=1), image_feat], axis=1)
+                image_feat = np.concatenate(
+                    [np.expand_dims(g_image_feat, axis=1), image_feat], axis=1
+                )
                 image_feat = np.array(image_feat, dtype=np.float32)
 
-                g_loc = [0, 0, 1, 1] + [1]*(self.num_locs - 4)
-                g_image_loc = np.repeat(np.array([g_loc], dtype=np.float32), batch_size, axis=0)
-                image_loc = np.concatenate([np.expand_dims(g_image_loc, axis=1), image_loc], axis=1)
+                g_loc = [0, 0, 1, 1] + [1] * (self.num_locs - 4)
+                g_image_loc = np.repeat(
+                    np.array([g_loc], dtype=np.float32), batch_size, axis=0
+                )
+                image_loc = np.concatenate(
+                    [np.expand_dims(g_image_loc, axis=1), image_loc], axis=1
+                )
 
                 image_loc = np.array(image_loc, dtype=np.float32)
                 g_image_mask = np.repeat(np.array([[1]]), batch_size, axis=0)
@@ -249,7 +272,7 @@ class ConceptCapLoaderVal(object):
                 attr_confs,
                 image_attrs,
                 image_label,
-                image_mask
+                image_mask,
             )
 
             yield tuple([torch.tensor(data) for data in batch] + [image_id])
@@ -260,17 +283,17 @@ class ConceptCapLoaderVal(object):
 
 class BertPreprocessBatch(object):
     def __init__(
-            self,
-            caption_path,
-            tokenizer,
-            seq_len,
-            region_len,
-            data_size,
-            split="Train",
-            visualization=False,
-            objective=0,
-            num_locs=5,
-            shuffled=False
+        self,
+        caption_path,
+        tokenizer,
+        seq_len,
+        region_len,
+        data_size,
+        split="Train",
+        visualization=False,
+        objective=0,
+        num_locs=5,
+        shuffled=False,
     ):
 
         self.split = split
@@ -285,8 +308,21 @@ class BertPreprocessBatch(object):
         self.shuffled = shuffled
 
     def __call__(self, data):
-        image_feature_wp, image_cls_wp, obj_labels, obj_confs, attr_labels, attr_confs, attr_scores, \
-            image_location_wp, num_boxes, image_h, image_w, image_id, caption = data
+        (
+            image_feature_wp,
+            image_cls_wp,
+            obj_labels,
+            obj_confs,
+            attr_labels,
+            attr_confs,
+            attr_scores,
+            image_location_wp,
+            num_boxes,
+            image_h,
+            image_w,
+            image_id,
+            caption,
+        ) = data
 
         image_feature = np.zeros((self.region_len, 2048), dtype=np.float32)
         image_cls = np.zeros((self.region_len, 1601), dtype=np.float32)
@@ -322,12 +358,12 @@ class BertPreprocessBatch(object):
         if self.num_locs > 5:
             image_location[:, 4] = image_location[:, 2] - image_location[:, 0]
             image_location[:, 5] = image_location[:, 3] - image_location[:, 1]
-        
+
         if self.shuffled:
             label = 1
-        else: 
+        else:
             label = 0
-            
+
         caption = self.captions[image_id]
         tokens_caption = self.tokenizer.encode(caption, add_special_tokens=False)
 
@@ -343,11 +379,13 @@ class BertPreprocessBatch(object):
             is_next=label,
             image_loc=image_location,
             num_boxes=num_boxes,
-            overlaps=overlaps
+            overlaps=overlaps,
         )
 
         # transform sample to features
-        cur_features = self.convert_example_to_features(cur_example, self.seq_len, self.tokenizer, self.region_len)
+        cur_features = self.convert_example_to_features(
+            cur_example, self.seq_len, self.tokenizer, self.region_len
+        )
 
         cur_tensors = (
             cur_features.input_ids,
@@ -366,13 +404,14 @@ class BertPreprocessBatch(object):
             cur_features.image_label,
             cur_features.image_mask,
             cur_features.masked_label,
-            image_id
+            image_id,
         )
         return cur_tensors
 
-    def convert_example_to_features(self, example, max_seq_length, tokenizer, max_region_length):
-        """
-        """
+    def convert_example_to_features(
+        self, example, max_seq_length, tokenizer, max_region_length
+    ):
+        """ """
         image_feat = example.image_feat
         tokens = example.caption
         image_loc = example.image_loc
@@ -382,9 +421,9 @@ class BertPreprocessBatch(object):
 
         self._truncate_seq_pair(tokens, max_seq_length - 2)
 
-        tokens_label = [-1] * len(tokens) # skip masking
+        tokens_label = [-1] * len(tokens)  # skip masking
         image_label = [-1] * num_boxes
-        masked_label = np.zeros((image_feat.shape[0])) # skip masking
+        masked_label = np.zeros((image_feat.shape[0]))  # skip masking
 
         # concatenate lm labels and account for CLS and SEP: [CLS] tokens [SEP]
         lm_label_ids = [-1] + tokens_label + [-1]
