@@ -48,7 +48,7 @@ sh run_sis_probing.sh
 ```
 
 
-## Setup and Usage
+## How to cite
 ```
 @inproceedings{voloshina2023language,
   title={Are Language-and-Vision Transformers Sensitive to Discourse? A Case Study of ViLBERT},
