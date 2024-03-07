@@ -46,3 +46,16 @@ cd probing
 sh run_probing.sh
 sh run_sis_probing.sh
 ```
+
+
+## Setup and Usage
+```
+@inproceedings{voloshina2023language,
+  title={Are Language-and-Vision Transformers Sensitive to Discourse? A Case Study of ViLBERT},
+  author={Voloshina, Ekaterina and Ilinykh, Nikolai and Dobnik, Simon},
+  booktitle={Proceedings of the Workshop on Multimodal, Multilingual Natural Language Generation and Multilingual WebNLG Challenge (MM-NLG 2023)},
+  pages={28--38},
+  year={2023}
+}
+```
+
